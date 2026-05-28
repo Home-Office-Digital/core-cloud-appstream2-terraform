@@ -10,7 +10,7 @@ data "aws_route53profiles_profiles" "profiles" {
 resource "aws_route53profiles_association" "default" {
   count       = var.attach_vpc_to_r53_profile ? 1 : 0
   name        = "core-cloud-r53-profile"
-  profile_id  = data.aws_route53profiles_profile.profiles[0][0].id
+  profile_id  = data.aws_route53profiles_profiles.profiles[0][0].id
   resource_id = data.aws_vpc.vpc[0].id
 }
 

@@ -145,12 +145,14 @@ variable "user_settings" {
   ]
 }
 
-variable "attach_vpc_to_r53_profile" {
-  type    = bool
-  default = false
+variable "route53_profile_name" {
+  description = "The Route 53 profile name with which to associate the VPC."
+  type        = string
+  default     = ""
 }
 
 variable "vpc_id" {
-  type    = string
-  default = ""
+  description = "The VPC Id to associate with the Route 53 profile."
+  type        = string
+  default     = ""
 }

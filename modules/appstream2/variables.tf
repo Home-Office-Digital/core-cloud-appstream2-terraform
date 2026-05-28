@@ -144,3 +144,13 @@ variable "user_settings" {
     { action = "PRINTING_TO_LOCAL_DEVICE", permission = "DISABLED" },
   ]
 }
+
+variable "attach_vpc_to_r53_profile" {
+  type    = bool
+  default = false
+}
+
+variable "vpc_id" {
+  type    = string
+  default = ""
+}

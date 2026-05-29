@@ -41,10 +41,12 @@ jobs:
     - name: Discover Terraform test modules
       id: discover
       shell: bash
+      env:
+        MODULES_ROOT: ${{ inputs.modules_root }}
       run: |
         set -euo pipefail
 
-        root="${{ inputs.modules_root }}"
+        root="$MODULES_ROOT"
 
         if [[ ! -d "$root" ]]; then
           echo "modules=[]" >> "$GITHUB_OUTPUT"
@@ -69,10 +71,12 @@ jobs:
 
     - name: Report module test coverage
       shell: bash
+      env:
+        MODULES_ROOT: ${{ inputs.modules_root }}
       run: |
         set -euo pipefail
 
-        root="${{ inputs.modules_root }}"
+        root="$MODULES_ROOT"
         if [[ -d "$root" ]]; then
           total_modules="$({
             find "$root" -type f -name "*.tf" \
@@ -114,6 +118,23 @@ jobs:
     - name: Terraform validate
       run: terraform -chdir=${{ matrix.module }} validate
 
+    - name: Resolve test directory
+      id: test_dir
+      shell: bash
+      run: |
+        set -euo pipefail
+
+        module_dir="${{ matrix.module }}"
+        if [[ -d "${module_dir}/tests" ]] && find "${module_dir}/tests" -type f -name "*.tftest.hcl" | grep -q .; then
+          echo "path=${module_dir}/tests" >> "$GITHUB_OUTPUT"
+        else
+          echo "path=${module_dir}" >> "$GITHUB_OUTPUT"
+        fi
+
+    - name: Terraform init test directory
+      shell: bash
+      run: terraform -chdir=${{ steps.test_dir.outputs.path }} init -backend=false
+
     - name: Terraform test with JSON output
       id: tf_test
       run: |
@@ -123,7 +144,7 @@ jobs:
         module_slug="$(echo "${{ matrix.module }}" | tr '/' '-')"
         mkdir -p test-results
 
-        terraform -chdir=${{ matrix.module }} test -json \
+        terraform -chdir=${{ steps.test_dir.outputs.path }} test -json \
           > "test-results/${module_slug}-terraform-test.json"
 
         exit_code=$?
@@ -171,7 +192,9 @@ jobs:
     if: needs.discover-modules.outputs.modules == '[]'
     steps:
     - name: Skip
-      run: echo "No modules with Terraform tests (*.tftest.hcl) were found under ${{ inputs.modules_root }} (recursive scan)."
+      env:
+        MODULES_ROOT: ${{ inputs.modules_root }}
+      run: echo "No modules with Terraform tests (*.tftest.hcl) were found under ${MODULES_ROOT} (recursive scan)."
 
   comment-test-results:
     name: Comment Terraform test results on PR

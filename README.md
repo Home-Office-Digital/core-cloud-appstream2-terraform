@@ -41,3 +41,5 @@ Notes:
 
 * `terraform init -backend=false` is used for local module test setup.
 * Tests are defined in tests folder under each module.
+* CI runs `terraform validate` from each module root and runs `terraform test` from `tests/` when present.
+* Route53 profile association in AppStream is conditionally evaluated, so default test plans do not require live AWS credentials.

@@ -22,3 +22,22 @@ A Terraform module to provision AWS AppStream 2.0 fleets and associated stacks, 
 
 # Example Usage
 Example usage can be found in the README in the modules folder. 
+
+# Testing
+
+Run Terraform native tests from each module directory:
+
+```bash
+cd modules/security-groups
+terraform init -backend=false
+terraform test
+
+cd ../appstream2
+terraform init -backend=false
+terraform test
+```
+
+Notes:
+
+* `terraform init -backend=false` is used for local module test setup.
+* Tests are defined in tests folder under each module.

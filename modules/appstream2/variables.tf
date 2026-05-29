@@ -144,3 +144,15 @@ variable "user_settings" {
     { action = "PRINTING_TO_LOCAL_DEVICE", permission = "DISABLED" },
   ]
 }
+
+variable "route53_profile_name" {
+  description = "The Route 53 profile name with which to associate the VPC."
+  type        = string
+  default     = ""
+}
+
+variable "vpc_id" {
+  description = "The VPC Id to associate with the Route 53 profile."
+  type        = string
+  default     = ""
+}

@@ -17,7 +17,8 @@ run "plan_single_fleet_stack" {
   }
 
   providers = {
-    aws = aws.test
+    aws                 = aws.test
+    aws.no_default_tags = aws.test
   }
 
   variables {
@@ -85,7 +86,8 @@ run "plan_homefolder_enabled" {
   }
 
   providers = {
-    aws = aws.test
+    aws                 = aws.test
+    aws.no_default_tags = aws.test
   }
 
   variables {
@@ -148,7 +150,8 @@ run "plan_multi_fleet_autoscaling" {
   }
 
   providers = {
-    aws = aws.test
+    aws                 = aws.test
+    aws.no_default_tags = aws.test
   }
 
   variables {

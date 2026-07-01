@@ -18,8 +18,6 @@ locals {
 }
 
 resource "aws_route53profiles_association" "default" {
-  provider = aws.no_default_tags
-
   count       = local.route53_association_enabled ? 1 : 0
   name        = var.route53_profile_name
   profile_id  = local.matched_profile.id

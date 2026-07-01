@@ -44,14 +44,50 @@ variable "stream_view" {
 variable "fleet_configs" {
   description = "List of fleet-specific autoscaling configs"
   type = list(object({
-    fleet_name      = string
-    image_arn       = string
-    min_capacity    = number
-    max_capacity    = number
-    scale_up_cron   = string
-    scale_down_cron = string
-    min_wh_capacity = number
-    max_wh_capacity = number
+    fleet_name                  = string
+    image_arn                   = string
+    min_capacity                = number
+    max_capacity                = number
+    scale_up_cron               = optional(string)
+    scale_down_cron             = optional(string)
+    min_wh_capacity             = optional(number)
+    max_wh_capacity             = optional(number)
+    desired_instances           = optional(number)
+    scale_in_adjustment         = optional(number)
+    scale_out_adjustment        = optional(number)
+    scale_in_cooldown           = optional(number)
+    scale_out_cooldown          = optional(number)
+    metric_aggregation_type     = optional(string)
+    scale_in_evaluation_periods = optional(number)
+    scale_in_alarm_period       = optional(number)
+    scale_in_alarm_threshold    = optional(number)
+    scale_in_alarm_statistic       = optional(string)
+    scale_out_alarm_statistic      = optional(string)
+    scale_in_step_use_upper_bound  = optional(bool)
+    scale_in_metric_interval_upper_bound = optional(number)
+    scale_in_alarm_description     = optional(string)
+    scale_out_alarm_description    = optional(string)
+    scheduled_actions = optional(list(object({
+      name         = string
+      schedule     = string
+      min_capacity = number
+      max_capacity = number
+    })))
+    extra_scale_out_policies = optional(list(object({
+      name_suffix         = string
+      metric_name         = string
+      comparison_operator = string
+      threshold           = number
+      scaling_adjustment  = number
+      statistic           = optional(string)
+      period              = optional(number)
+      evaluation_periods  = optional(number)
+      cooldown            = optional(number)
+      metric_aggregation_type = optional(string)
+    })))
+    # Set false when extended autoscaling was created manually in AWS and cannot be imported
+    # (scheduled actions do not support terraform import).
+    manage_extended_autoscaling = optional(bool)
   }))
 }
 

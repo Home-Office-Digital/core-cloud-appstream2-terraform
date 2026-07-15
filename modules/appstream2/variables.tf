@@ -192,3 +192,34 @@ variable "vpc_id" {
   type        = string
   default     = ""
 }
+
+variable "create_fleet_instance_role" {
+  description = "Create an IAM role for fleet streaming instances with CloudWatch agent permissions."
+  type        = bool
+  default     = false
+}
+
+variable "fleet_instance_role_name" {
+  description = "Name for the created fleet instance IAM role. Required when create_fleet_instance_role is true. Must match cc-pam*-appstream-instance-role for Terragrunt apply PassRole permissions."
+  type        = string
+  default     = null
+
+  validation {
+    condition = (
+      var.fleet_instance_role_name == null ||
+      can(regex("^cc-pam[-a-z0-9]+-appstream-instance-role$", var.fleet_instance_role_name))
+    )
+    error_message = "fleet_instance_role_name must match cc-pam*-appstream-instance-role."
+  }
+
+  validation {
+    condition     = !var.create_fleet_instance_role || var.fleet_instance_role_name != null
+    error_message = "fleet_instance_role_name is required when create_fleet_instance_role is true."
+  }
+}
+
+variable "fleet_instance_role_arn" {
+  description = "Existing IAM role ARN to attach to fleets instead of creating one."
+  type        = string
+  default     = null
+}

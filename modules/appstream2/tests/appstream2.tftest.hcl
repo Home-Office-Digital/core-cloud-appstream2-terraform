@@ -217,3 +217,74 @@ run "plan_multi_fleet_autoscaling" {
     error_message = "Two scale-in alarms should be planned for two fleets."
   }
 }
+
+run "plan_fleet_instance_role" {
+  command = plan
+
+  module {
+    source = "../"
+  }
+
+  providers = {
+    aws = aws.test
+  }
+
+  variables {
+    region                             = "eu-west-2"
+    desired_instances                  = 1
+    description                        = "Fleet instance role test"
+    idle_disconnect_timeout_in_seconds = 600
+    disconnect_timeout_in_seconds      = 60
+    display_name                       = "Fleet Instance Role Test"
+    enable_default_internet_access     = false
+    fleet_type                         = "ON_DEMAND"
+    stream_view                        = "APP"
+    instance_type                      = "stream.standard.small"
+    max_user_duration_in_seconds       = 3600
+
+    subnet_ids         = ["subnet-11111111", "subnet-22222222"]
+    security_group_ids = ["sg-12345678"]
+
+    stack_name         = "role-stack"
+    stack_description  = "Role stack"
+    stack_display_name = "Role Stack"
+    enable_homefolder  = false
+
+    associated_fleet = "fleet-role"
+    fleet_configs = [
+      {
+        fleet_name      = "fleet-role"
+        image_arn       = "arn:aws:appstream:eu-west-2:123456789012:image/test-image"
+        min_capacity    = 1
+        max_capacity    = 3
+        scale_up_cron   = "cron(0 8 ? * MON-FRI *)"
+        scale_down_cron = "cron(0 18 ? * MON-FRI *)"
+        min_wh_capacity = 1
+        max_wh_capacity = 2
+      }
+    ]
+
+    scale_out_metric_interval_upper_bound = 0
+    scale_out_adjustment                  = 50
+    scale_in_metric_interval_upper_bound  = 0
+    scale_in_adjustment                   = -50
+
+    create_fleet_instance_role = true
+    fleet_instance_role_name   = "cc-pam-apc-02-appstream-instance-role"
+  }
+
+  assert {
+    condition     = length(aws_iam_role.fleet_instance) == 1
+    error_message = "Fleet instance IAM role should be created when create_fleet_instance_role is true."
+  }
+
+  assert {
+    condition     = aws_iam_role.fleet_instance[0].name == "cc-pam-apc-02-appstream-instance-role"
+    error_message = "Fleet instance IAM role name should match the supplied fleet_instance_role_name."
+  }
+
+  assert {
+    condition     = length(aws_iam_role_policy_attachment.fleet_instance_cloudwatch_agent) == 1
+    error_message = "CloudWatch agent policy should be attached to the fleet instance role."
+  }
+}

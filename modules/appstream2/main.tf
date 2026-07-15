@@ -22,7 +22,11 @@ resource "aws_appstream_fleet" "appstream_fleet" {
     security_group_ids = var.security_group_ids
     subnet_ids         = var.subnet_ids
   }
-  
+
+  lifecycle {
+    # Application Auto Scaling adjusts desired capacity at runtime.
+    ignore_changes = [compute_capacity]
+  }
 }
 
 resource "aws_appstream_stack" "appstream_stack" {
@@ -103,6 +107,11 @@ resource "aws_appautoscaling_target" "appstream_target" {
   resource_id        = "fleet/${each.value.fleet_name}"
   scalable_dimension = "appstream:fleet:DesiredCapacity"
   service_namespace  = "appstream"
+
+  lifecycle {
+    # Scheduled actions and scale-up/down crons adjust min/max at runtime.
+    ignore_changes = [min_capacity, max_capacity]
+  }
 
   depends_on = [
     aws_appstream_fleet.appstream_fleet

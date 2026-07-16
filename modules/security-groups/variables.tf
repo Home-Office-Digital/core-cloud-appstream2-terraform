@@ -3,6 +3,12 @@ variable "appstream_security_group" {
   type        = string
 }
 
+variable "appstream_security_group_description" {
+  description = "Description for the AppStream security group"
+  type        = string
+  default     = null
+}
+
 variable "appstream_vpc_id" {
   description = "VPC ID where the security group will be created"
   type        = string

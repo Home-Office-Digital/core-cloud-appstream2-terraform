@@ -16,6 +16,7 @@ resource "aws_appstream_fleet" "appstream_fleet" {
   image_arn                          = each.value.image_arn
   instance_type                      = var.instance_type
   max_user_duration_in_seconds       = var.max_user_duration_in_seconds
+  iam_role_arn                       = local.fleet_instance_role_arn
 
   vpc_config {
     security_group_ids = var.security_group_ids

@@ -3,6 +3,14 @@ resource "aws_security_group" "appstream_security_group" {
   name        = var.appstream_security_group
   description = coalesce(var.appstream_security_group_description, "AppStream fleet security group for ${var.appstream_security_group}")
   vpc_id      = var.appstream_vpc_id
+
+  # SG description is ForceNew in the AWS provider. Existing groups were created
+  # with the provider default ("Managed by Terraform"); changing description in
+  # code would destroy/recreate the SG, which fails while AppStream fleets still
+  # reference it (DependencyViolation). New groups still get the description above.
+  lifecycle {
+    ignore_changes = [description]
+  }
 }
 
 # Ingress rules driven by ingress_cidr_blocks list

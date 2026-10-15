@@ -217,7 +217,10 @@ resource "aws_appautoscaling_policy" "extra_scale_out_policy" {
     metric_aggregation_type = coalesce(try(each.value.policy.metric_aggregation_type, null), coalesce(try(each.value.fleet.metric_aggregation_type, null), "Maximum"))
 
     step_adjustment {
-      metric_interval_lower_bound = var.scale_out_metric_interval_upper_bound
+      # Less-than alarms (e.g. AvailableCapacity) breach with negative threshold-relative
+      # values; use a fixed upper bound of 0 (not scale-in tuning). Greater-than alarms keep lower-bound steps.
+      metric_interval_lower_bound = contains(["LessThanThreshold", "LessThanOrEqualToThreshold"], each.value.policy.comparison_operator) ? null : var.scale_out_metric_interval_upper_bound
+      metric_interval_upper_bound = contains(["LessThanThreshold", "LessThanOrEqualToThreshold"], each.value.policy.comparison_operator) ? 0 : null
       scaling_adjustment          = each.value.policy.scaling_adjustment
     }
   }

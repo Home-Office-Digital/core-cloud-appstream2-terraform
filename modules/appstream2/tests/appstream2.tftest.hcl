@@ -278,7 +278,8 @@ run "plan_extra_scale_out_policy_step_bounds" {
 
     scale_out_metric_interval_upper_bound = 0
     scale_out_adjustment                  = 50
-    scale_in_metric_interval_upper_bound  = 0
+    # Deliberately non-zero so the test proves less-than extra scale-out does not inherit scale-in bounds.
+    scale_in_metric_interval_upper_bound  = -5
     scale_in_adjustment                   = -50
   }
 
@@ -293,8 +294,21 @@ run "plan_extra_scale_out_policy_step_bounds" {
   }
 
   assert {
-    condition     = aws_appautoscaling_policy.extra_scale_out_policy["fleet-extra/scale-out-capacity-policy"].name == "fleet-extra-scale-out-capacity-policy"
-    error_message = "Capacity extra scale-out policy name should be derived from fleet and suffix."
+    condition = length([
+      for step in tolist(aws_appautoscaling_policy.extra_scale_out_policy["fleet-extra/scale-out-capacity-policy"].step_scaling_policy_configuration[0].step_adjustment) :
+      step
+      if tostring(try(step.metric_interval_upper_bound, "")) == "0" && tostring(try(step.metric_interval_lower_bound, "")) == ""
+    ]) == 1
+    error_message = "Less-than extra scale-out must use upper bound 0 with no lower bound (independent of scale_in_metric_interval_upper_bound)."
+  }
+
+  assert {
+    condition = length([
+      for step in tolist(aws_appautoscaling_policy.extra_scale_out_policy["fleet-extra/scale-out-utilization-policy"].step_scaling_policy_configuration[0].step_adjustment) :
+      step
+      if tostring(try(step.metric_interval_lower_bound, "")) == "0" && tostring(try(step.metric_interval_upper_bound, "")) == ""
+    ]) == 1
+    error_message = "Greater-than extra scale-out must use lower bound 0 with no upper bound."
   }
 }
 

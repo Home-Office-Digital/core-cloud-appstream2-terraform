@@ -218,6 +218,86 @@ run "plan_multi_fleet_autoscaling" {
   }
 }
 
+run "plan_extra_scale_out_policy_step_bounds" {
+  command = plan
+
+  module {
+    source = "../"
+  }
+
+  providers = {
+    aws = aws.test
+  }
+
+  variables {
+    region                             = "eu-west-2"
+    desired_instances                  = 1
+    description                        = "Extra scale-out step bounds test"
+    idle_disconnect_timeout_in_seconds = 600
+    disconnect_timeout_in_seconds      = 60
+    display_name                       = "Extra Scale Out Test"
+    enable_default_internet_access     = false
+    fleet_type                         = "ON_DEMAND"
+    stream_view                        = "APP"
+    instance_type                      = "stream.standard.small"
+    max_user_duration_in_seconds       = 3600
+
+    subnet_ids         = ["subnet-11111111", "subnet-22222222"]
+    security_group_ids = ["sg-12345678"]
+
+    stack_name         = "extra-scale-out-stack"
+    stack_description  = "Extra scale-out stack"
+    stack_display_name = "Extra Scale Out Stack"
+    enable_homefolder  = false
+
+    associated_fleet = "fleet-extra"
+    fleet_configs = [
+      {
+        fleet_name = "fleet-extra"
+        image_arn  = "arn:aws:appstream:eu-west-2:123456789012:image/test-image"
+        min_capacity = 10
+        max_capacity = 40
+        extra_scale_out_policies = [
+          {
+            name_suffix         = "scale-out-capacity-policy"
+            metric_name         = "AvailableCapacity"
+            comparison_operator = "LessThanOrEqualToThreshold"
+            threshold           = 10
+            scaling_adjustment  = 20
+          },
+          {
+            name_suffix         = "scale-out-utilization-policy"
+            metric_name         = "CapacityUtilization"
+            comparison_operator = "GreaterThanOrEqualToThreshold"
+            threshold           = 75
+            scaling_adjustment  = 25
+          },
+        ]
+      }
+    ]
+
+    scale_out_metric_interval_upper_bound = 0
+    scale_out_adjustment                  = 50
+    scale_in_metric_interval_upper_bound  = 0
+    scale_in_adjustment                   = -50
+  }
+
+  assert {
+    condition = length(aws_appautoscaling_policy.extra_scale_out_policy) == 2
+    error_message = "Two extra scale-out policies should be planned."
+  }
+
+  assert {
+    condition = length(aws_cloudwatch_metric_alarm.extra_scale_out_alarm) == 2
+    error_message = "Two extra scale-out alarms should be planned."
+  }
+
+  assert {
+    condition     = aws_appautoscaling_policy.extra_scale_out_policy["fleet-extra/scale-out-capacity-policy"].name == "fleet-extra-scale-out-capacity-policy"
+    error_message = "Capacity extra scale-out policy name should be derived from fleet and suffix."
+  }
+}
+
 run "plan_fleet_instance_role" {
   command = plan
 

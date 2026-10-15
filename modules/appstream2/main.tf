@@ -218,9 +218,9 @@ resource "aws_appautoscaling_policy" "extra_scale_out_policy" {
 
     step_adjustment {
       # Less-than alarms (e.g. AvailableCapacity) breach with negative threshold-relative
-      # values; match scale-in style upper-bound steps. Greater-than alarms keep lower-bound steps.
+      # values; use a fixed upper bound of 0 (not scale-in tuning). Greater-than alarms keep lower-bound steps.
       metric_interval_lower_bound = contains(["LessThanThreshold", "LessThanOrEqualToThreshold"], each.value.policy.comparison_operator) ? null : var.scale_out_metric_interval_upper_bound
-      metric_interval_upper_bound = contains(["LessThanThreshold", "LessThanOrEqualToThreshold"], each.value.policy.comparison_operator) ? var.scale_in_metric_interval_upper_bound : null
+      metric_interval_upper_bound = contains(["LessThanThreshold", "LessThanOrEqualToThreshold"], each.value.policy.comparison_operator) ? 0 : null
       scaling_adjustment          = each.value.policy.scaling_adjustment
     }
   }

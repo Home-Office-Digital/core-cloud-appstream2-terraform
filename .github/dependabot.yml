@@ -24,7 +24,8 @@ updates:
 
     # Enable TF updates for Terraform Projects
     - package-ecosystem: "terraform"
-      directory: "/"
+      directories:
+          - "/modules/**"
       schedule:
           interval: "daily"
       commit-message:

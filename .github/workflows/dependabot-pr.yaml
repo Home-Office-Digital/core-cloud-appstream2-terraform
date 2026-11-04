@@ -1,0 +1,34 @@
+name: Send Dependabot PRs to Slack
+
+on:
+  pull_request:
+    types: [opened]
+
+permissions:
+  contents: read
+
+jobs:
+  SendDependabotPrToSlack:
+    name: Send Dependabot PR to Slack
+    # pull_request fires for every pull request in the repository, so anything
+    # not raised by Dependabot is skipped.
+    if: github.actor == 'dependabot[bot]'
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Send Dependabot PR to Slack
+        ## slack-github-action@v4.0.0
+        uses: slackapi/slack-github-action@dcb1066f776dd043e64d0e8ba94ca15cc7e1875d
+        with:
+          # v2.0.0 moved the webhook settings from environment variables to
+          # action inputs, so the v1 SLACK_WEBHOOK_URL/SLACK_WEBHOOK_TYPE env
+          # form is rejected outright by v4.
+          webhook: ${{ secrets.CC_ACCESS_AND_IDENTITY_NOTIFICATIONS_WEBHOOK }}
+          webhook-type: incoming-webhook
+          # Defaults to false, which continues past a Slack error and leaves the
+          # step green without having posted anything.
+          errors: true
+          payload: |
+            {
+              "text": ${{ toJSON(format('New {0} Dependabot PR available for review:{1}{2}{1}{3}', github.repository, fromJSON('"\n"'), github.event.pull_request.title, github.event.pull_request.html_url)) }}
+            }
